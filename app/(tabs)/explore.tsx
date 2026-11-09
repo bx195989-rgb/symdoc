@@ -1,112 +1,152 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { useState } from 'react';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { useRouter } from 'expo-router';
 
-import { Collapsible } from '@/components/ui/collapsible';
-import { ExternalLink } from '@/components/external-link';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Fonts } from '@/constants/theme';
+import { MIN_TOUCH, Palette } from '@/constants/colors';
+import { Fonts } from '@/constants/typography';
+import { useSymptoms } from '@/context/SymptomsContext';
+import { severityLabel } from '@/lib/severity';
+import { LogEntry } from '@/types';
+import EditEntryModal from '@/components/EditEntryModal';
+import ScreenHeader, { useScreenTopPadding } from '@/components/ui/ScreenHeader';
+import AppButton from '@/components/ui/AppButton';
 
-export default function TabTwoScreen() {
+function formatDayLabel(dateStr: string) {
+  const date = new Date(dateStr);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+  const sameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
+  if (sameDay(date, today)) return 'Today';
+  if (sameDay(date, yesterday)) return 'Yesterday';
+  return date.toLocaleDateString([], { weekday: 'long' });
+}
+
+function formatDayFull(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'short' });
+}
+
+function groupByDay(entries: LogEntry[]) {
+  const groups: Record<string, LogEntry[]> = {};
+  for (const entry of entries) {
+    const key = new Date(entry.loggedAt).toDateString();
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(entry);
+  }
+  return Object.entries(groups)
+    .sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime())
+    .map(([key, list]) => [key, list.sort((a, b) => new Date(b.loggedAt).getTime() - new Date(a.loggedAt).getTime())] as const);
+}
+
+export default function HistoryScreen() {
+  const { entries, loading } = useSymptoms();
+  const router = useRouter();
+  const topPadding = useScreenTopPadding();
+  const [editingEntry, setEditingEntry] = useState<LogEntry | null>(null);
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { paddingHorizontal: 22, paddingTop: topPadding }]}>
+        <ScreenHeader title="History" />
+        <ActivityIndicator color={Palette.sage} style={{ marginTop: 24 }} />
+      </View>
+    );
+  }
+
+  if (entries.length === 0) {
+    return (
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: topPadding }]}>
+        <ScreenHeader title="History" lede="Your entries will appear here." />
+        <View style={styles.emptyWrap}>
+          <View style={styles.emptyRule} />
+          <Text style={styles.emptyTitle}>Nothing logged yet.</Text>
+          <Text style={styles.emptyCopy}>Log a symptom to start a record for your next appointment.</Text>
+          <AppButton label="Log a symptom" onPress={() => router.navigate('/' as never)} style={{ marginTop: 24 }} />
+        </View>
+      </ScrollView>
+    );
+  }
+
+  const grouped = groupByDay(entries);
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText
-          type="title"
-          style={{
-            fontFamily: Fonts.rounded,
-          }}>
-          Explore
-        </ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image
-          source={require('@/assets/images/react-logo.png')}
-          style={{ width: 100, height: 100, alignSelf: 'center' }}
-        />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful{' '}
-          <ThemedText type="defaultSemiBold" style={{ fontFamily: Fonts.mono }}>
-            react-native-reanimated
-          </ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: topPadding }]}>
+      <ScreenHeader title="History" />
+
+      {grouped.map(([dayKey, dayEntries]) => (
+        <View key={dayKey}>
+          <View style={styles.dayRow}>
+            <Text style={styles.dayLabel}>{formatDayLabel(dayKey)}</Text>
+            <Text style={styles.dayFull}>{formatDayFull(dayKey)}</Text>
+          </View>
+          {dayEntries.map((entry) => {
+            const score = entry.severityScore != null ? `${entry.severityScore} / 10 · ` : '';
+            return (
+              <TouchableOpacity
+                key={entry.id}
+                style={styles.entry}
+                onPress={() => setEditingEntry(entry)}
+                accessibilityRole="button"
+                accessibilityLabel={`${entry.symptom}, ${entry.severity}${entry.severityScore != null ? `, ${entry.severityScore} out of 10` : ''}. Tap to edit`}
+              >
+                <View style={styles.entryContent}>
+                  <View style={styles.entryTitleRow}>
+                    <Text style={styles.entryTitle}>{entry.symptom}</Text>
+                    <Text style={styles.entryScore}>
+                      {score}
+                      {severityLabel(entry.severity)}
+                    </Text>
+                  </View>
+                  <Text style={styles.entryMeta}>
+                    {new Date(entry.loggedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                    {entry.onsetContext ? ` · ${entry.onsetContext}` : ''}
+                  </Text>
+                  {entry.note ? <Text style={styles.entryNote}>{entry.note}</Text> : null}
+                </View>
+                <MaterialIcons name="chevron-right" size={20} color={Palette.muted} />
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      ))}
+
+      <EditEntryModal entry={editingEntry} onClose={() => setEditingEntry(null)} />
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
-  },
-  titleContainer: {
+  container: { flex: 1, backgroundColor: Palette.white },
+  content: { paddingHorizontal: 22, paddingBottom: 40 },
+  dayRow: {
     flexDirection: 'row',
-    gap: 8,
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    borderBottomWidth: 1,
+    borderBottomColor: Palette.border,
+    paddingTop: 11,
+    paddingBottom: 7,
+    marginTop: 5,
   },
+  dayLabel: { fontFamily: Fonts.sansSemi, fontSize: 13, color: Palette.nearBlack },
+  dayFull: { fontFamily: Fonts.sans, fontSize: 12, color: Palette.muted },
+  entry: {
+    minHeight: 82,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: Palette.border,
+    paddingVertical: 10,
+  },
+  entryContent: { flex: 1 },
+  entryTitleRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' },
+  entryTitle: { fontFamily: Fonts.sansSemi, fontSize: 15, color: Palette.nearBlack },
+  entryScore: { fontFamily: Fonts.sansSemi, fontSize: 12, color: Palette.sage },
+  entryMeta: { fontFamily: Fonts.sans, fontSize: 12, color: Palette.muted, marginTop: 4 },
+  entryNote: { fontFamily: Fonts.sans, fontSize: 13, lineHeight: 18, color: Palette.nearBlack, marginTop: 4 },
+  emptyWrap: { marginTop: 80 },
+  emptyRule: { height: 2, width: 38, backgroundColor: Palette.sage, marginBottom: 23 },
+  emptyTitle: { fontFamily: Fonts.serif, fontSize: 28, lineHeight: 34, letterSpacing: -0.7, color: Palette.nearBlack },
+  emptyCopy: { fontFamily: Fonts.sans, fontSize: 13, lineHeight: 20, color: Palette.muted, marginTop: 9, minHeight: MIN_TOUCH - 24 },
 });

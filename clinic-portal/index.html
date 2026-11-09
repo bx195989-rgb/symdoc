@@ -1,0 +1,1004 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SymDoc clinic portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600&family=Noto+Serif+Display:wght@500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --white: #FFFFFF;
+    --ink: #202D2B;
+    --muted: #52615E;
+    --accent: #174F4A;
+    --wash: #E5F0ED;
+    --line: #D9E2DD;
+    --outline: #71817B;
+    --danger: #833E3A;
+    --mild: #E5EFEB;
+    --moderate: #CBDDD5;
+    --severe: #AAC8BD;
+    --soft: #F4F7F5;
+    --serif: "Noto Serif Display", Georgia, serif;
+    --sans: "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    min-height: 100%;
+    background: var(--white);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 13px;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, p { margin: 0; }
+  h1 { font: 500 30px/1.2 var(--serif); letter-spacing: -0.025em; }
+  button, input, select { font: inherit; color: inherit; }
+  .hidden { display: none !important; }
+  .print-only { display: none; }
+
+  /* ---- Controls ---- */
+  .btn {
+    height: 48px;
+    min-width: 100px;
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    background: var(--accent);
+    color: var(--white);
+    padding: 0 18px;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .btn.secondary { background: var(--white); color: var(--accent); }
+  .btn.danger { background: var(--white); color: var(--danger); border-color: var(--danger); }
+  .btn.wide { width: 100%; }
+  .link-button {
+    border: 0;
+    background: transparent;
+    color: var(--accent);
+    min-height: 44px;
+    font-size: 12.5px;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    padding: 0 3px;
+    cursor: pointer;
+  }
+  .link-button.danger { color: var(--danger); }
+  .input-label { font-size: 12.5px; font-weight: 600; display: block; margin-bottom: 7px; }
+  .field { margin-bottom: 16px; }
+  input[type="text"], input[type="email"], input[type="password"], input[type="search"], select {
+    width: 100%;
+    height: 48px;
+    border: 1px solid var(--outline);
+    border-radius: 8px;
+    background: var(--white);
+    padding: 0 14px;
+    font-size: 14px;
+  }
+  input:focus, select:focus, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .error { color: var(--danger); font-size: 12.5px; min-height: 0; margin-bottom: 10px; }
+  .error:empty { display: none; }
+  .ok { color: var(--accent); }
+
+  .pill {
+    min-height: 24px;
+    min-width: 76px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .pill.mild { background: var(--mild); }
+  .pill.moderate { background: var(--moderate); }
+  .pill.severe { background: var(--severe); }
+
+  /* ---- Top bar ---- */
+  .topbar {
+    min-height: 64px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    padding: 0 48px;
+  }
+  .product { font: 500 24px/1 var(--serif); letter-spacing: -0.02em; white-space: nowrap; background: none; border: 0; padding: 0; cursor: pointer; }
+  .org { border-left: 1px solid var(--line); padding-left: 28px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .top-actions { margin-left: auto; display: flex; align-items: center; gap: 18px; }
+  .code { font-size: 12px; white-space: nowrap; color: var(--muted); }
+  .code strong { font-weight: 600; color: var(--ink); margin-left: 5px; letter-spacing: 0.05em; }
+
+  /* ---- Auth ---- */
+  #auth-view { min-height: 100vh; }
+  .auth-body { display: flex; justify-content: center; padding: 80px 32px; }
+  .auth-form { width: 400px; max-width: 100%; }
+  .auth-title { margin-bottom: 20px; }
+  .auth-tabs { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--line); margin-bottom: 22px; }
+  .auth-tabs button {
+    height: 48px;
+    border: 0;
+    background: var(--white);
+    text-align: left;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 0;
+    cursor: pointer;
+  }
+  .auth-tabs button.active { color: var(--accent); border-bottom: 2px solid var(--accent); font-weight: 600; }
+  .notice { border-left: 3px solid var(--accent); padding-left: 12px; margin-bottom: 14px; font-size: 12px; line-height: 1.55; color: var(--muted); }
+  .notice strong { color: var(--ink); }
+  .consent-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 18px; }
+  .consent-row input { width: 20px; height: 20px; margin: 1px 0 0; padding: 0; accent-color: var(--accent); }
+  .consent-row label { font-size: 12.5px; line-height: 1.45; }
+  .auth-submit { width: 100%; margin-top: 8px; }
+
+  /* ---- Content ---- */
+  .content { padding: 32px 64px 48px; }
+  .page-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .page-count { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .search-block { margin-top: 24px; width: 420px; max-width: 100%; }
+
+  /* ---- Patient table ---- */
+  .table { width: 100%; margin-top: 24px; }
+  .patient-grid { display: grid; grid-template-columns: 3.4fr 1.7fr 1fr 1.7fr 0.65fr; align-items: center; gap: 16px; }
+  .table-head { min-height: 40px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: 11px; color: var(--muted); font-weight: 600; letter-spacing: 0.035em; }
+  .patient-row { min-height: 64px; border-bottom: 1px solid var(--line); font-size: 13px; cursor: pointer; }
+  .patient-row:hover { background: var(--soft); }
+  .patient-name { display: flex; align-items: center; gap: 10px; min-width: 0; font-weight: 600; flex-wrap: wrap; }
+  .closed-label {
+    display: inline-flex;
+    align-items: center;
+    background: var(--soft);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    min-height: 24px;
+    padding: 2px 8px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .row-link { border: 0; background: none; text-decoration: underline; text-underline-offset: 3px; color: var(--accent); font-size: 12px; font-weight: 600; min-height: 44px; padding: 0; text-align: right; cursor: pointer; }
+
+  /* ---- States ---- */
+  .message { border-top: 1px solid var(--line); margin-top: 24px; padding-top: 38px; max-width: 560px; }
+  .message h2 { font: 500 22px/1.2 var(--serif); letter-spacing: -0.02em; }
+  .message p { font-size: 13px; line-height: 1.55; color: var(--muted); margin-top: 12px; }
+  .message .btn { margin-top: 18px; }
+  .message-code { font-size: 14px; font-weight: 600; margin-top: 15px; }
+  .loading-copy { font-size: 13px; color: var(--muted); margin-top: 26px; }
+  .skeleton { height: 64px; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 3.4fr 1.7fr 1fr 1.7fr 0.65fr; gap: 16px; align-items: center; }
+  .skeleton i { height: 9px; background: var(--wash); display: block; max-width: 155px; }
+  .skeleton i:nth-child(2) { max-width: 92px; }
+  .skeleton i:nth-child(3) { max-width: 35px; }
+  .skeleton i:nth-child(4) { max-width: 100px; }
+  .skeleton i:nth-child(5) { max-width: 32px; }
+
+  /* ---- Report detail ---- */
+  .back { border: 0; background: transparent; color: var(--accent); font-size: 12px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; min-height: 44px; padding: 0; cursor: pointer; }
+  .detail-top { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; }
+  .detail-top h1 { margin-bottom: 4px; }
+  .top-commands { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
+  .picker-wrap label { font-size: 11px; display: block; color: var(--muted); font-weight: 600; margin-bottom: 5px; }
+  .picker-wrap select { min-width: 245px; font-size: 12px; }
+  .detached-note { font-size: 12px; color: var(--danger); margin-top: 8px; }
+  .facts { display: flex; gap: 42px; margin-top: 15px; padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .fact span { display: block; font-size: 10.5px; color: var(--muted); font-weight: 600; margin-bottom: 4px; letter-spacing: 0.03em; }
+  .fact strong { display: block; font-size: 12.5px; font-weight: 500; }
+  .summary { padding: 13px 0 12px; font-size: 13.5px; line-height: 1.45; font-weight: 500; }
+  .clinical-grid { display: grid; grid-template-columns: 2fr 1.13fr 0.86fr 1.06fr 1.55fr 2.2fr; gap: 12px; align-items: center; }
+  .clinical-head { height: 32px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: 10.5px; font-weight: 600; color: var(--muted); letter-spacing: 0.03em; }
+  .group-label { display: flex; align-items: center; gap: 12px; min-height: 30px; font-size: 12px; font-weight: 600; border-bottom: 1px solid var(--line); margin-top: 6px; }
+  .group-label span { font-size: 10.5px; font-weight: 400; color: var(--muted); }
+  .symptom-row { min-height: 47px; border-bottom: 1px solid var(--line); font-size: 11.5px; line-height: 1.35; padding: 6px 0; }
+  .symptom-row .symptom { font-size: 12px; font-weight: 600; }
+  .dash { color: var(--muted); }
+
+  /* ---- Settings ---- */
+  .settings-wrap { max-width: 480px; }
+  .settings-section { border-top: 1px solid var(--line); padding: 24px 0 8px; margin-top: 8px; }
+  .settings-section h2 { font: 500 18px/1.2 var(--serif); letter-spacing: -0.015em; margin-bottom: 14px; }
+  .code-display { font-size: 22px; font-weight: 600; letter-spacing: 3px; padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-bottom: 8px; }
+  .hint { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 14px; }
+
+  /* ---- Narrow layouts ---- */
+  @media (max-width: 840px) {
+    .topbar { padding: 12px 24px; gap: 14px; flex-wrap: wrap; }
+    .org { padding-left: 14px; }
+    .top-actions { gap: 10px; flex-wrap: wrap; }
+    .content { padding: 24px 24px 40px; }
+    h1 { font-size: 26px; }
+    .table-head, .skeleton i:nth-child(n+3) { display: none; }
+    .patient-grid.patient-row { display: flex; flex-wrap: wrap; gap: 4px 16px; padding: 12px 0; }
+    .patient-row .patient-name { flex: 1 1 100%; }
+    .patient-row [data-label]::before { content: attr(data-label) " "; color: var(--muted); font-size: 11px; }
+    .patient-row .row-link { margin-left: auto; }
+    .clinical-head { display: none; }
+    .clinical-grid.symptom-row { grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+    .clinical-grid.symptom-row > :first-child { grid-column: 1 / -1; }
+    .clinical-grid.symptom-row [data-label]::before { content: attr(data-label) ": "; color: var(--muted); }
+    .clinical-grid.symptom-row .notes { grid-column: 1 / -1; }
+    .facts { gap: 24px; }
+    .picker-wrap select { min-width: 0; width: 100%; }
+    .picker-wrap { flex: 1 1 100%; }
+  }
+
+  /* ---- Print / PDF ---- */
+  @page { size: A4; margin: 15mm; }
+  @media print {
+    body * { visibility: hidden; }
+    #detail-pane, #detail-pane * { visibility: visible; }
+    #detail-pane { position: absolute; top: 0; left: 0; width: 100%; padding: 0; }
+    .no-print { display: none !important; }
+    .print-only { display: block !important; }
+    .print-brand { font: 500 24px/1 var(--serif); margin-bottom: 28px; }
+    .print-title { font: 500 30px/1.2 var(--serif); margin-bottom: 18px; }
+    .print-footer { font-size: 11px; color: var(--muted); margin-top: 30px; }
+    .detail-top h1 { font-size: 22px; }
+    .symptom-row, .group-label { break-inside: avoid; }
+    .group-label { break-after: avoid; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ===== Sign in / create account ===== -->
+  <div id="auth-view">
+    <div class="topbar"><div class="product">SymDoc</div></div>
+    <div class="auth-body">
+      <div class="auth-form">
+        <h1 class="auth-title" id="auth-title">Create clinic account</h1>
+        <div class="auth-tabs">
+          <button id="tab-signin" type="button">Sign in</button>
+          <button id="tab-signup" type="button" class="active">Create clinic account</button>
+        </div>
+        <div id="auth-error" class="error"></div>
+
+        <div id="signup-fields">
+          <div class="notice">
+            <strong>Before you sign up:</strong> this is unapproved student pilot software, not a
+            clinical or diagnostic product. Use is voluntary and reports reflect patient
+            self-reported data only.
+          </div>
+          <div class="consent-row">
+            <input type="checkbox" id="consent-checkbox" />
+            <label for="consent-checkbox">I understand this is pilot software and my clinic is participating with informed consent.</label>
+          </div>
+          <div class="field">
+            <label class="input-label" for="clinic-name">Clinic name</label>
+            <input id="clinic-name" type="text" placeholder="Enter clinic name" />
+          </div>
+        </div>
+        <div class="field">
+          <label class="input-label" for="email">Clinic email</label>
+          <input id="email" type="email" placeholder="name@clinic.com" autocomplete="username" />
+        </div>
+        <div class="field">
+          <label class="input-label" for="password">Password</label>
+          <input id="password" type="password" placeholder="Enter password" autocomplete="current-password" />
+        </div>
+        <button class="btn auth-submit" id="auth-submit">Create clinic account</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Signed in ===== -->
+  <div id="dashboard-view" class="hidden">
+    <div class="topbar no-print">
+      <button class="product" id="home-btn" type="button">SymDoc</button>
+      <div class="org" id="clinic-name-tag">&mdash;</div>
+      <div class="top-actions">
+        <div class="code">Clinic code <strong id="topbar-code">&mdash;</strong></div>
+        <button class="link-button" id="copy-code-btn" type="button">Copy code</button>
+        <button class="link-button" id="settings-btn" type="button">Settings</button>
+        <button class="link-button" id="logout-btn" type="button">Sign out</button>
+      </div>
+    </div>
+
+    <!-- Patients list -->
+    <div class="content" id="patients-view">
+      <div class="page-head">
+        <h1>Patients</h1>
+        <div class="page-count"><span id="report-count">0</span> patients</div>
+      </div>
+      <div class="search-block">
+        <label class="input-label" for="patient-search">Search patients</label>
+        <input id="patient-search" type="search" placeholder="Search by name" />
+      </div>
+      <div id="patient-list"></div>
+    </div>
+
+    <!-- Patient report -->
+    <div class="content hidden" id="detail-view">
+      <button class="back no-print" id="back-btn" type="button">Back to patients</button>
+      <div id="detail-pane"></div>
+    </div>
+
+    <!-- Settings -->
+    <div class="content hidden" id="settings-view">
+      <button class="back" id="settings-back-btn" type="button">Back to patients</button>
+      <div class="settings-wrap">
+        <h1 style="margin-bottom:20px;">Settings</h1>
+
+        <div class="settings-section" style="border-top:0;padding-top:0;margin-top:0;">
+          <h2>Clinic code</h2>
+          <div class="code-display" id="settings-clinic-code">&mdash;</div>
+          <p class="hint">Give this to patients so they can share reports with you.</p>
+          <button class="btn secondary wide" id="regenerate-code-btn" type="button">Regenerate code</button>
+        </div>
+
+        <div class="settings-section">
+          <h2>Clinic details</h2>
+          <div id="profile-error" class="error"></div>
+          <div class="field">
+            <label class="input-label" for="settings-clinic-name">Clinic name</label>
+            <input id="settings-clinic-name" type="text" />
+          </div>
+          <button class="btn" id="save-profile-btn" type="button">Save details</button>
+        </div>
+
+        <div class="settings-section">
+          <h2>Email</h2>
+          <div id="email-error" class="error"></div>
+          <div class="field">
+            <label class="input-label" for="settings-email">Email</label>
+            <input id="settings-email" type="email" autocomplete="username" />
+          </div>
+          <button class="btn" id="save-email-btn" type="button">Save email</button>
+        </div>
+
+        <div class="settings-section">
+          <h2>Password</h2>
+          <div id="password-error" class="error"></div>
+          <div class="field">
+            <label class="input-label" for="settings-new-password">New password</label>
+            <input id="settings-new-password" type="password" autocomplete="new-password" />
+          </div>
+          <div class="field">
+            <label class="input-label" for="settings-confirm-password">Confirm new password</label>
+            <input id="settings-confirm-password" type="password" autocomplete="new-password" />
+          </div>
+          <button class="btn" id="save-password-btn" type="button">Save password</button>
+        </div>
+
+        <div class="settings-section">
+          <h2>Delete account</h2>
+          <p class="hint">Permanently deletes your clinic profile and all reports shared with you. This cannot be undone.</p>
+          <button class="btn danger" id="delete-account-btn" type="button">Delete account</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script type="module">
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+  const SUPABASE_URL = 'https://ouyzywnqbswmjpkhogiz.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91eXp5d25xYnN3bWpwa2hvZ2l6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyNzI1MjcsImV4cCI6MjEwMDg0ODUyN30.bvDBpANAIRyL2WgQMCntEeAorl_HSC3mqY_yUqrunjE';
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const $ = (id) => document.getElementById(id);
+  const authView = $('auth-view');
+  const dashboardView = $('dashboard-view');
+  const authError = $('auth-error');
+  const authTitle = $('auth-title');
+  const signupFields = $('signup-fields');
+  const clinicNameInput = $('clinic-name');
+  const emailInput = $('email');
+  const passwordInput = $('password');
+  const authSubmit = $('auth-submit');
+  const tabSignin = $('tab-signin');
+  const tabSignup = $('tab-signup');
+  const patientList = $('patient-list');
+  const patientSearch = $('patient-search');
+  const detailPane = $('detail-pane');
+  const reportCount = $('report-count');
+  const clinicNameTag = $('clinic-name-tag');
+  const topbarCode = $('topbar-code');
+
+  const patientsView = $('patients-view');
+  const detailView = $('detail-view');
+  const settingsView = $('settings-view');
+
+  const settingsClinicCode = $('settings-clinic-code');
+  const settingsClinicName = $('settings-clinic-name');
+  const settingsEmail = $('settings-email');
+  const settingsNewPassword = $('settings-new-password');
+  const settingsConfirmPassword = $('settings-confirm-password');
+  const profileError = $('profile-error');
+  const emailError = $('email-error');
+  const passwordError = $('password-error');
+
+  let isSignUp = true;
+  let reportsCache = [];
+  let loadState = 'loading'; // loading | ready | error
+  let currentClinicCode = '';
+  let currentClinicName = '';
+  let selectedPatientId = null;
+  let activeReportByPatient = {}; // patientId -> report id shown
+  let searchQuery = '';
+
+  // ---- helpers ----
+  function esc(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+  const fmtDate = (v) =>
+    v ? new Date(v).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Not provided';
+  const fmtDateTime = (v) =>
+    new Date(v).toLocaleString('en-AU', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
+  function setMsg(el, text, isError = true) {
+    el.textContent = text;
+    el.classList.toggle('ok', !isError);
+  }
+
+  function groupByPatient() {
+    const groups = new Map();
+    for (const row of reportsCache) {
+      // A null patient_id means the patient has deleted their account. We keep the
+      // report (clinics have their own record-retention obligations) but can no longer
+      // correlate it with other reports from the same person, so each becomes its own group.
+      const key = row.patient_id || `detached:${row.id}`;
+      if (!groups.has(key)) {
+        groups.set(key, {
+          patientId: key,
+          patientName: row.patient_name || 'Unknown patient',
+          patientDob: row.patient_dob,
+          detached: !row.patient_id,
+          reports: [],
+        });
+      }
+      groups.get(key).reports.push(row);
+    }
+    const list = Array.from(groups.values());
+    list.forEach((g) => g.reports.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
+    list.sort((a, b) => new Date(b.reports[0].created_at) - new Date(a.reports[0].created_at));
+    return list;
+  }
+
+  function generateClinicCode() {
+    const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    for (let i = 0; i < 6; i++) code += alphabet[Math.floor(Math.random() * alphabet.length)];
+    return code;
+  }
+
+  async function ensureClinicProfile(uid, clinicName, email) {
+    const { data: existing } = await supabase.from('clinics').select('id').eq('id', uid).maybeSingle();
+    if (existing) return;
+
+    let inserted = false;
+    for (let attempt = 0; attempt < 5 && !inserted; attempt++) {
+      const { error } = await supabase
+        .from('clinics')
+        .insert({ id: uid, clinic_name: clinicName, email, clinic_code: generateClinicCode() });
+      if (!error) {
+        inserted = true;
+      } else if (!error.message.includes('duplicate')) {
+        throw error;
+      }
+    }
+    if (!inserted) throw new Error('Could not generate a unique clinic code. Try again.');
+  }
+
+  // ---- View switching ----
+  function showView(name) {
+    patientsView.classList.toggle('hidden', name !== 'patients');
+    detailView.classList.toggle('hidden', name !== 'detail');
+    settingsView.classList.toggle('hidden', name !== 'settings');
+    window.scrollTo(0, 0);
+    if (name === 'settings') loadSettings();
+  }
+
+  $('home-btn').addEventListener('click', () => showView('patients'));
+  $('back-btn').addEventListener('click', () => showView('patients'));
+  $('settings-back-btn').addEventListener('click', () => showView('patients'));
+  $('settings-btn').addEventListener('click', () => showView('settings'));
+
+  $('copy-code-btn').addEventListener('click', async () => {
+    if (!currentClinicCode) return;
+    try {
+      await navigator.clipboard.writeText(currentClinicCode);
+      $('copy-code-btn').textContent = 'Copied';
+      setTimeout(() => ($('copy-code-btn').textContent = 'Copy code'), 1500);
+    } catch {
+      // clipboard blocked, code is visible in the bar anyway
+    }
+  });
+
+  // ---- Auth ----
+  function setAuthMode(signUp) {
+    isSignUp = signUp;
+    signupFields.classList.toggle('hidden', !signUp);
+    tabSignup.classList.toggle('active', signUp);
+    tabSignin.classList.toggle('active', !signUp);
+    authTitle.textContent = signUp ? 'Create clinic account' : 'Sign in';
+    authSubmit.textContent = signUp ? 'Create clinic account' : 'Sign in';
+    passwordInput.autocomplete = signUp ? 'new-password' : 'current-password';
+    authError.textContent = '';
+  }
+  tabSignin.addEventListener('click', () => setAuthMode(false));
+  tabSignup.addEventListener('click', () => setAuthMode(true));
+
+  authSubmit.addEventListener('click', async () => {
+    setMsg(authError, '');
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    const clinicName = clinicNameInput.value.trim();
+
+    if (!email || !password || (isSignUp && !clinicName)) {
+      setMsg(authError, 'Please fill in all fields.');
+      return;
+    }
+    if (isSignUp && !$('consent-checkbox').checked) {
+      setMsg(authError, 'Please confirm you understand this is pilot software.');
+      return;
+    }
+
+    try {
+      if (isSignUp) {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { clinic_name: clinicName } },
+        });
+        if (error) throw error;
+        if (!data.user) throw new Error('Sign up did not return a user.');
+
+        if (data.session) {
+          // Email confirmation off (or already confirmed): create the profile now.
+          await ensureClinicProfile(data.user.id, clinicName, email);
+          showDashboard();
+        } else {
+          // Email confirmation required: no session yet, profile is created on first login.
+          setAuthMode(false);
+          setMsg(authError, 'Check your email for a confirmation link, then sign in.', false);
+        }
+      } else {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        const meta = data.user.user_metadata || {};
+        if (meta.clinic_name) {
+          try {
+            await ensureClinicProfile(data.user.id, meta.clinic_name, email);
+          } catch {
+            // profile likely already exists, safe to ignore
+          }
+        }
+        showDashboard();
+      }
+    } catch (e) {
+      setMsg(authError, e.message || 'Something went wrong.');
+    }
+  });
+
+  $('logout-btn').addEventListener('click', async () => {
+    await supabase.auth.signOut();
+    showAuth();
+  });
+
+  // ---- Patients list ----
+  patientSearch.addEventListener('input', () => {
+    searchQuery = patientSearch.value.trim().toLowerCase();
+    renderPatientList();
+  });
+
+  const tableHead = `
+    <div class="patient-grid table-head">
+      <span>PATIENT</span><span>DATE OF BIRTH</span><span>REPORTS</span><span>LATEST REPORT</span><span></span>
+    </div>`;
+
+  function renderPatientList() {
+    if (loadState === 'loading') {
+      patientList.innerHTML = `
+        <p class="loading-copy">Loading reports…</p>
+        <div class="table" style="margin-top:15px">${tableHead}
+          ${'<div class="skeleton"><i></i><i></i><i></i><i></i><i></i></div>'.repeat(4)}
+        </div>`;
+      return;
+    }
+    if (loadState === 'error') {
+      patientList.innerHTML = `
+        <div class="message">
+          <h2>Reports could not be loaded.</h2>
+          <p>Check your connection and try again.</p>
+          <button class="btn" id="retry-btn" type="button">Try again</button>
+        </div>`;
+      $('retry-btn').addEventListener('click', loadReports);
+      return;
+    }
+    if (reportsCache.length === 0) {
+      patientList.innerHTML = `
+        <div class="message">
+          <h2>No reports yet.</h2>
+          <p>Give patients your clinic code to share a report.</p>
+          <div class="message-code">Clinic code &nbsp; ${esc(currentClinicCode || '—')}</div>
+          <button class="btn secondary" id="empty-copy-btn" type="button">Copy clinic code</button>
+        </div>`;
+      $('empty-copy-btn').addEventListener('click', () => $('copy-code-btn').click());
+      return;
+    }
+
+    let groups = groupByPatient();
+    if (searchQuery) {
+      groups = groups.filter((g) => g.patientName.toLowerCase().includes(searchQuery));
+    }
+    if (groups.length === 0) {
+      patientList.innerHTML = `<div class="message"><p style="margin-top:0">No patients match &ldquo;${esc(patientSearch.value)}&rdquo;.</p></div>`;
+      return;
+    }
+
+    patientList.innerHTML = `
+      <div class="table">${tableHead}
+        ${groups
+          .map(
+            (g) => `
+          <div class="patient-grid patient-row" data-patient-id="${esc(g.patientId)}">
+            <span class="patient-name">${esc(g.patientName)}${g.detached ? ' <span class="closed-label">Account closed</span>' : ''}</span>
+            <span data-label="DOB">${esc(fmtDate(g.patientDob))}</span>
+            <span data-label="Reports">${g.reports.length}</span>
+            <span data-label="Latest">${esc(fmtDate(g.reports[0].created_at))}</span>
+            <button class="row-link" type="button">View</button>
+          </div>`
+          )
+          .join('')}
+      </div>`;
+
+    patientList.querySelectorAll('.patient-row').forEach((el) => {
+      el.addEventListener('click', () => openPatient(el.dataset.patientId));
+    });
+  }
+
+  function openPatient(patientId) {
+    selectedPatientId = patientId;
+    renderDetail();
+    showView('detail');
+  }
+
+  // ---- Report detail ----
+  function severityPill(severity) {
+    const label = severity.charAt(0).toUpperCase() + severity.slice(1);
+    return `<span class="pill ${esc(severity)}">${esc(label)}</span>`;
+  }
+
+  function renderSymptomRows(items) {
+    return items
+      .map((s) => {
+        const noteBits = [];
+        if (s.contexts && s.contexts.length) noteBits.push(s.contexts.join('; '));
+        if (s.notes && s.notes.length) noteBits.push(s.notes.join('; '));
+        const lastDiffers =
+          (s.lastSeverity && s.lastSeverity !== s.severity) ||
+          (s.lastScore != null && s.lastScore !== s.peakScore);
+        if (lastDiffers) {
+          noteBits.push(
+            `Most recently ${s.lastSeverity || s.severity}${s.lastScore != null ? ` (${s.lastScore}/10)` : ''}.`
+          );
+        }
+        const notes = noteBits.length ? esc(noteBits.join(' · ')) : '<span class="dash">None recorded</span>';
+        return `
+          <div class="clinical-grid symptom-row">
+            <span class="symptom">${esc(s.symptom)}</span>
+            <span>${severityPill(s.severity)}</span>
+            <span data-label="Peak">${s.peakScore != null ? `${s.peakScore} / 10` : '<span class="dash">—</span>'}</span>
+            <span data-label="Frequency">${s.count} ${s.count === 1 ? 'entry' : 'entries'}</span>
+            <span data-label="Last logged">${esc(fmtDateTime(s.lastSeen))}</span>
+            <span class="notes">${notes}</span>
+          </div>`;
+      })
+      .join('');
+  }
+
+  function renderCoRows(items) {
+    return items
+      .map(
+        (c) => `
+          <div class="clinical-grid symptom-row">
+            <span class="symptom">${esc(c.symptoms.join(' + '))}</span>
+            <span class="dash">—</span>
+            <span class="dash">—</span>
+            <span data-label="Frequency">${c.count} shared ${c.count === 1 ? 'event' : 'events'}</span>
+            <span class="dash">—</span>
+            <span class="notes dash">&nbsp;</span>
+          </div>`
+      )
+      .join('');
+  }
+
+  function renderDetail() {
+    const group = groupByPatient().find((g) => g.patientId === selectedPatientId);
+    if (!group) {
+      selectedPatientId = null;
+      showView('patients');
+      renderPatientList();
+      return;
+    }
+    const reportId = activeReportByPatient[selectedPatientId] || group.reports[0].id;
+    const row = group.reports.find((r) => r.id === reportId) || group.reports[0];
+    activeReportByPatient[selectedPatientId] = row.id;
+    const r = row.report || {};
+
+    const ongoing = r.ongoing || [];
+    const past = r.past || [];
+    const co = r.coOccurring || [];
+
+    const picker =
+      group.reports.length > 1
+        ? `<div class="picker-wrap">
+            <label for="report-select">Report</label>
+            <select id="report-select">
+              ${group.reports
+                .map(
+                  (rep) =>
+                    `<option value="${esc(rep.id)}" ${rep.id === row.id ? 'selected' : ''}>${esc(
+                      (rep.report && rep.report.period) || ''
+                    )}${rep.report && rep.report.period ? ' · ' : ''}shared ${esc(fmtDate(rep.created_at))}</option>`
+                )
+                .join('')}
+            </select>
+          </div>`
+        : '';
+
+    detailPane.innerHTML = `
+      <div class="print-only">
+        <div class="print-brand">SymDoc</div>
+        <div class="print-title">Patient report</div>
+      </div>
+      <div class="detail-top">
+        <h1>${esc(group.patientName)}</h1>
+        <div class="top-commands no-print">
+          ${picker}
+          <button class="btn secondary" id="print-report-btn" type="button">Print / Save as PDF</button>
+        </div>
+      </div>
+      ${group.detached ? `<p class="detached-note">This patient has deleted their account. This report is retained on file but is no longer linked to a live account.</p>` : ''}
+      <div class="facts">
+        <div class="fact"><span>DATE OF BIRTH</span><strong>${esc(fmtDate(row.patient_dob))}</strong></div>
+        <div class="fact"><span>REPORT PERIOD</span><strong>${esc(r.period || 'Not recorded')}</strong></div>
+        <div class="fact"><span>DATE SHARED</span><strong>${esc(fmtDate(row.created_at))}</strong></div>
+      </div>
+      <p class="summary">${esc(r.summaryLine || '')}</p>
+      <div class="clinical-grid clinical-head">
+        <span>SYMPTOM</span><span>SEVERITY</span><span>PEAK</span><span>FREQUENCY</span><span>LAST LOGGED</span><span>NOTES</span>
+      </div>
+      ${ongoing.length ? `<div class="group-label">Ongoing</div>${renderSymptomRows(ongoing)}` : ''}
+      ${past.length ? `<div class="group-label">Earlier</div>${renderSymptomRows(past)}` : ''}
+      ${co.length ? `<div class="group-label">Often together <span>Shared log events</span></div>${renderCoRows(co)}` : ''}
+      <div class="print-only print-footer">Patient-reported information · Shared with ${esc(currentClinicName || 'your clinic')} on ${esc(fmtDate(row.created_at))}</div>
+      <div class="no-print" style="margin-top:28px;">
+        <button class="link-button danger" id="dismiss-report-btn" type="button">Remove this report</button>
+      </div>
+    `;
+
+    $('dismiss-report-btn').addEventListener('click', () => dismissReport(row.id));
+    $('print-report-btn').addEventListener('click', () => window.print());
+    const reportSelect = $('report-select');
+    if (reportSelect) {
+      reportSelect.addEventListener('change', () => {
+        activeReportByPatient[selectedPatientId] = reportSelect.value;
+        renderDetail();
+      });
+    }
+  }
+
+  async function dismissReport(reportId) {
+    if (!confirm('Remove this report from your list? The patient will need to share it again if you need it back.')) return;
+    const { error } = await supabase.from('shared_reports').delete().eq('id', reportId);
+    if (error) {
+      alert('Could not remove report: ' + error.message);
+      return;
+    }
+    reportsCache = reportsCache.filter((r) => r.id !== reportId);
+    delete activeReportByPatient[selectedPatientId];
+    reportCount.textContent = groupByPatient().length;
+    renderPatientList();
+    renderDetail();
+  }
+
+  async function loadReports() {
+    loadState = 'loading';
+    renderPatientList();
+    const { data, error } = await supabase
+      .from('shared_reports')
+      .select('id, patient_id, report, created_at, patient_name, patient_dob')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      loadState = 'error';
+      renderPatientList();
+      return;
+    }
+    reportsCache = data || [];
+    loadState = 'ready';
+    reportCount.textContent = groupByPatient().length;
+    renderPatientList();
+    if (!detailView.classList.contains('hidden')) renderDetail();
+  }
+
+  // ---- Settings ----
+  async function loadSettings() {
+    setMsg(profileError, '');
+    setMsg(emailError, '');
+    setMsg(passwordError, '');
+    settingsNewPassword.value = '';
+    settingsConfirmPassword.value = '';
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const uid = sessionData.session?.user.id;
+    if (!uid) return;
+
+    const { data, error } = await supabase
+      .from('clinics')
+      .select('clinic_name, email, clinic_code')
+      .eq('id', uid)
+      .single();
+
+    if (!error && data) {
+      settingsClinicCode.textContent = data.clinic_code || '—';
+      settingsClinicName.value = data.clinic_name || '';
+      settingsEmail.value = data.email || '';
+    }
+  }
+
+  $('save-profile-btn').addEventListener('click', async () => {
+    setMsg(profileError, '');
+    const name = settingsClinicName.value.trim();
+    if (!name) {
+      setMsg(profileError, 'Enter a clinic name.');
+      return;
+    }
+    const { data: sessionData } = await supabase.auth.getSession();
+    const uid = sessionData.session?.user.id;
+    const { error } = await supabase.from('clinics').update({ clinic_name: name }).eq('id', uid);
+    if (error) {
+      setMsg(profileError, error.message);
+    } else {
+      currentClinicName = name;
+      clinicNameTag.textContent = name;
+      setMsg(profileError, 'Saved.', false);
+    }
+  });
+
+  $('save-email-btn').addEventListener('click', async () => {
+    setMsg(emailError, '');
+    const email = settingsEmail.value.trim();
+    if (!email) {
+      setMsg(emailError, 'Enter an email address.');
+      return;
+    }
+    const { data: sessionData } = await supabase.auth.getSession();
+    const uid = sessionData.session?.user.id;
+    const { error: authErr } = await supabase.auth.updateUser({ email });
+    if (authErr) {
+      setMsg(emailError, authErr.message);
+      return;
+    }
+    const { error: profileErr } = await supabase.from('clinics').update({ email }).eq('id', uid);
+    if (profileErr) setMsg(emailError, profileErr.message);
+    else setMsg(emailError, 'Saved.', false);
+  });
+
+  $('save-password-btn').addEventListener('click', async () => {
+    setMsg(passwordError, '');
+    const pw = settingsNewPassword.value;
+    const confirmPw = settingsConfirmPassword.value;
+    if (!pw) {
+      setMsg(passwordError, 'Enter a new password.');
+      return;
+    }
+    if (pw !== confirmPw) {
+      setMsg(passwordError, "Passwords don't match.");
+      return;
+    }
+    const { error } = await supabase.auth.updateUser({ password: pw });
+    if (error) {
+      setMsg(passwordError, error.message);
+    } else {
+      settingsNewPassword.value = '';
+      settingsConfirmPassword.value = '';
+      setMsg(passwordError, 'Saved.', false);
+    }
+  });
+
+  $('regenerate-code-btn').addEventListener('click', async () => {
+    setMsg(profileError, '');
+    if (!confirm('Regenerate your clinic code? The old code will stop working immediately.')) return;
+    const { data: sessionData } = await supabase.auth.getSession();
+    const uid = sessionData.session?.user.id;
+    if (!uid) return;
+
+    let updated = false;
+    for (let attempt = 0; attempt < 5 && !updated; attempt++) {
+      const newCode = generateClinicCode();
+      const { error } = await supabase.from('clinics').update({ clinic_code: newCode }).eq('id', uid);
+      if (!error) {
+        updated = true;
+        currentClinicCode = newCode;
+        settingsClinicCode.textContent = newCode;
+        topbarCode.textContent = newCode;
+      } else if (!error.message.includes('duplicate')) {
+        setMsg(profileError, error.message);
+        return;
+      }
+    }
+    if (!updated) setMsg(profileError, 'Could not generate a unique code. Try again.');
+  });
+
+  $('delete-account-btn').addEventListener('click', async () => {
+    if (!confirm('Permanently delete your clinic account and all reports shared with you? This cannot be undone.')) return;
+    const { error } = await supabase.rpc('delete_own_clinic_account');
+    if (error) {
+      alert('Could not delete account: ' + error.message);
+      return;
+    }
+    await supabase.auth.signOut();
+    showAuth();
+  });
+
+  // ---- Session ----
+  async function loadClinicHeader() {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const uid = sessionData.session?.user.id;
+    if (!uid) return;
+    const { data, error } = await supabase
+      .from('clinics')
+      .select('clinic_name, clinic_code')
+      .eq('id', uid)
+      .single();
+    if (!error && data) {
+      currentClinicName = data.clinic_name || '';
+      currentClinicCode = data.clinic_code || '';
+      clinicNameTag.textContent = currentClinicName || '—';
+      topbarCode.textContent = currentClinicCode || '—';
+      if (loadState === 'ready' && reportsCache.length === 0) renderPatientList();
+    }
+  }
+
+  function showDashboard() {
+    authView.classList.add('hidden');
+    dashboardView.classList.remove('hidden');
+    showView('patients');
+    loadClinicHeader();
+    loadReports();
+  }
+
+  function showAuth() {
+    authView.classList.remove('hidden');
+    dashboardView.classList.add('hidden');
+    reportsCache = [];
+    selectedPatientId = null;
+    currentClinicCode = '';
+    currentClinicName = '';
+    setAuthMode(true);
+  }
+
+  (async () => {
+    const { data } = await supabase.auth.getSession();
+    if (data.session) {
+      showDashboard();
+    } else {
+      showAuth();
+    }
+  })();
+</script>
+</body>
+</html>
