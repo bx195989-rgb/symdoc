@@ -29,7 +29,8 @@ jobs:
 
       - name: Archive (unsigned)
         run: |
-          set -o pipefail
+          mkdir -p build
+          set +e
           xcodebuild archive \
             -workspace ios/SymptomTracker.xcworkspace \
             -scheme SymptomTracker \
@@ -40,7 +41,23 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
-            | tail -n 60
+            > build/xcodebuild.log 2>&1
+          status=$?
+          if [ $status -ne 0 ]; then
+            echo "===== ERROR LINES ====="
+            grep -n -i -B2 -A8 "error:\|fatal error\|\*\* .* FAILED\|command .* failed\|No such file" build/xcodebuild.log | head -n 150
+            echo "===== LAST 80 LINES BEFORE SUMMARY ====="
+            grep -n "ARCHIVE FAILED" build/xcodebuild.log | head -n 1
+          fi
+          exit $status
+
+      - name: Upload build log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-log
+          path: build/xcodebuild.log
+          retention-days: 7
 
       - name: Package IPA
         run: |
