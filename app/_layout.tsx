@@ -60,6 +60,7 @@ export default function RootLayout() {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Palette.white }}>
         <ActivityIndicator color={Palette.sage} />
+        <StatusBar style="dark" />
       </View>
     );
   }
@@ -76,7 +77,8 @@ export default function RootLayout() {
   return (
     <SymptomsProvider>
       <ThemeProvider value={AppTheme}>
-        <Stack>
+        {/* Native-stack screens control the status bar on iOS, so force dark icons here too. */}
+        <Stack screenOptions={{ statusBarStyle: 'dark' }}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         </Stack>
         <StatusBar style="dark" />
