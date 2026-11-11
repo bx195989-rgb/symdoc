@@ -222,14 +222,17 @@ export default function LogScreen() {
 
         {showPicker && (
           <>
-            <DateTimePicker
-              value={customDateTime}
-              mode="datetime"
-              display={Platform.OS === 'ios' ? 'inline' : 'default'}
-              maximumDate={new Date()}
-              accentColor={Palette.sage}
-              onChange={onChangeDateTime}
-            />
+            <View style={Platform.OS === 'ios' ? styles.pickerCard : undefined}>
+              <DateTimePicker
+                value={customDateTime}
+                mode="datetime"
+                display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                maximumDate={new Date()}
+                accentColor={Palette.sage}
+                themeVariant="light"
+                onChange={onChangeDateTime}
+              />
+            </View>
             {Platform.OS === 'ios' && (
               <View style={styles.pickerActions}>
                 <AppButton
@@ -372,6 +375,15 @@ const styles = StyleSheet.create({
   earlierRight: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   earlierValue: { fontFamily: Fonts.sans, fontSize: 12, color: Palette.muted },
   pickerActions: { flexDirection: 'row', justifyContent: 'flex-end' },
+  pickerCard: {
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: Palette.chipBorder,
+    borderRadius: 12,
+    backgroundColor: Palette.white,
+    paddingHorizontal: 6,
+    overflow: 'hidden',
+  },
   savedMark: {
     width: 54,
     height: 54,

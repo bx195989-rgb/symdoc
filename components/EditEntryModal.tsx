@@ -125,14 +125,17 @@ export default function EditEntryModal({ entry, onClose }: Props) {
               <Text style={styles.dateText}>{formatDateTime(loggedAt)}</Text>
             </TouchableOpacity>
             {showPicker && (
-              <DateTimePicker
-                value={loggedAt}
-                mode="datetime"
-                display={Platform.OS === 'ios' ? 'inline' : 'default'}
-                maximumDate={new Date()}
-                accentColor={Palette.sage}
-                onChange={onChangeDateTime}
-              />
+              <View style={Platform.OS === 'ios' ? styles.pickerCard : undefined}>
+                <DateTimePicker
+                  value={loggedAt}
+                  mode="datetime"
+                  display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                  maximumDate={new Date()}
+                  accentColor={Palette.sage}
+                  themeVariant="light"
+                  onChange={onChangeDateTime}
+                />
+              </View>
             )}
             {Platform.OS === 'ios' && showPicker && (
               <AppButton label="Done" variant="text" onPress={() => setShowPicker(false)} />
@@ -201,4 +204,13 @@ const styles = StyleSheet.create({
     borderBottomColor: Palette.chipBorder,
   },
   dateText: { fontFamily: Fonts.sans, fontSize: 14, color: Palette.nearBlack },
+  pickerCard: {
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: Palette.chipBorder,
+    borderRadius: 12,
+    backgroundColor: Palette.white,
+    paddingHorizontal: 6,
+    overflow: 'hidden',
+  },
 });
